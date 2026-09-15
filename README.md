@@ -19,6 +19,8 @@ git clone https://git.harivan.sh/harivansh-afk/pr.nvim \
   ~/.local/share/nvim/site/pack/plugins/start/pr.nvim
 ```
 
+After a native install, run `:helptags ALL` once to index the help.
+
 Optional plugins, installed and loaded by your plugin manager:
 
 - [`fzf-lua`](https://github.com/ibhagwan/fzf-lua) and `fzf` for `:PR pick` and `:PR commit`.
