@@ -1,0 +1,21 @@
+name: test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  neovim:
+    runs-on: native
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Headless tests and Lua formatting
+        run: |
+          nix shell \
+            github:NixOS/nixpkgs/c5c4a43b0e8056328ec4529f735cabdb8f1942bb#neovim \
+            github:NixOS/nixpkgs/c5c4a43b0e8056328ec4529f735cabdb8f1942bb#stylua \
+            github:NixOS/nixpkgs/c5c4a43b0e8056328ec4529f735cabdb8f1942bb#git \
+            --command bash -euc 'bash scripts/test.sh; stylua --check lua plugin tests'

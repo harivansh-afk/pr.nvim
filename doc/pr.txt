@@ -1,0 +1,81 @@
+*pr.txt*  Pull request review for Neovim                              *pr.nvim*
+
+==============================================================================
+SETUP                                                              *pr-setup*
+
+Neovim 0.11+, git, and authenticated gh (GitHub) or tea (Forgejo/Gitea).
+The forge is detected from origin. Load fzf-lua for the optional pickers and
+diffs.nvim for the full diff review. No plugin manager is required by pr.nvim.
+
+Commands and buffer mappings are installed automatically. Global mappings
+are opt-in; configure after setting your mapleader: >lua
+    require("pr").setup { keymaps = true }
+<
+Calling setup() without options leaves existing global mappings alone.
+Custom mappings can invoke :PR commands or the public Lua functions: >lua
+    vim.keymap.set("n", "<leader>gp", function() require("pr").list() end)
+<
+
+==============================================================================
+COMMANDS                                                       *pr-commands*
+
+    :PR [list]          List open PRs (pr://list)
+    :PR log             Browse commits (pr://log)
+    :PR pick            Pick a PR with fzf-lua
+    :PR commit          Pick a commit with fzf-lua
+    :PR files           Show files for the current range (pr://files)
+    :PR checks          Toggle the CI pane (pr://checks); <CR> opens job logs
+    :PR threads         Toggle comments and review threads (pr://threads)
+    :PR mode            Toggle cumulative / incremental diff
+    :PR whole           Select the whole PR range
+    :PR reload          Refresh the loaded PR
+    :PR refspec         Install the pull-request fetch refspec
+    :PR clean           Remove clean review worktrees
+
+Write actions are available as subcommands too: use command completion or
+g? in a PR buffer for the available verbs, including draft, merge and close.
+
+==============================================================================
+GLOBAL MAPPINGS                                                  *pr-keymaps*
+
+Enabled by setup { keymaps = true }. Existing mappings on these keys are
+replaced. Buffer-local mappings are always present; g? shows their help.
+
+    <C-p>               PR list
+    <leader>gl          Commit log
+    ]p / [p             Next / previous PR
+    ]c / [c             Next / previous commit
+    <leader>gf          Files view
+    <leader>ci          CI pane
+    <leader>ct          Conversation pane
+    <leader>gC          Commit picker
+    <leader>m           Cumulative / incremental
+    <leader>gA          Whole PR
+    <C-e>               Marked PR list
+    <leader>1-9         Jump to a marked PR slot
+    ]m / [m             Next / previous marked PR
+
+Bracket mappings fall back to their native Vim motions outside the relevant
+PR context; ]c and [c also retain native behavior in diff-mode windows.
+
+==============================================================================
+STATE                                                            *pr-state*
+
+PR listings fetch origin and add its pull-request refspec on first use.
+File navigation creates detached worktrees under .worktrees/pr-<number> or
+.worktrees/pr-commit-<sha>. :PR clean keeps dirty worktrees. Add .worktrees/
+to your Git ignore rules if it is not already ignored.
+
+Marks persist per repository in stdpath("state")/pr-marks.json.
+
+==============================================================================
+FUGITIVE                                                      *pr-fugitive*
+
+To show the same per-file addition/deletion counts in Fugitive status: >lua
+    vim.api.nvim_create_autocmd("User", {
+      pattern = "FugitiveIndex",
+      callback = function(ev) require("pr.gitstats").fugitive(ev.buf) end,
+    })
+<
+
+ vim:tw=78:ts=8:ft=help:norl:
