@@ -1,5 +1,7 @@
 # pr.nvim
 
+> Development, issues, and pull requests: [Forgejo](https://git.harivan.sh/harivansh-afk/pr.nvim). GitHub is a read-only mirror.
+
 Review GitHub and Forgejo/Gitea pull requests in Neovim: PR lists, commit navigation, file diffs, CI logs, review threads, and a persistent list of marked PRs.
 
 ## Install
