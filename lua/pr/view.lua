@@ -125,8 +125,8 @@ function M.render(keep)
   -- Identifier = blue in cozybox, same as the author column in pr://list.
   if s.pr then
     seg { { "Author:", "fugitiveHeader" }, { " " }, { s.pr.author and s.pr.author.login or "?", "Identifier" } }
-    -- Draft is carried by a GREY number, exactly as in pr://list and the fzf
-    -- picker - no "[draft]" column anywhere in this plugin.
+    -- Draft is carried by a GREY number, exactly as in pr://list - no
+    -- "[draft]" column anywhere in this plugin.
     seg {
       { "PR:", "fugitiveHeader" },
       { "     " },
@@ -327,7 +327,6 @@ local HELP = {
   { "T", "conversation pane (threads)" },
   { "-", "PR list" },
   { "<leader>m", "cumulative <-> incremental" },
-  { "<leader>gC", "pick commit" },
   { "<leader>gA", "whole PR view" },
   { "R / <c-r>", "re-fetch this PR" },
   { "q", "back" },

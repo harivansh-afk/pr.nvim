@@ -25,7 +25,6 @@ After a native install, run `:helptags ALL` once to index the help.
 
 Optional plugins, installed and loaded by your plugin manager:
 
-- [`fzf-lua`](https://github.com/ibhagwan/fzf-lua) and `fzf` for `:PR pick` and `:PR commit`.
 - [`diffs.nvim`](https://github.com/barrettruth/diffs.nvim) for the full diff review (`dd` / `dv`) and inline diff styling.
 
 ## Use

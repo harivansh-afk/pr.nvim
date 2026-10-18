@@ -1,9 +1,9 @@
 -- pr: move between PRs, and between commits inside a PR.
 --
 --   <c-p>        PR list (pr://list)  ]p / [p     next / prev PR
---   :PR pick     pick a PR (fzf)      ]c / [c     next / prev commit
+--                                     ]c / [c     next / prev commit
 --   <leader>gf   files view           <leader>m   cumulative <-> incremental
---   <leader>gC   pick a commit        <leader>gA  whole-PR view
+--                                     <leader>gA  whole-PR view
 --   G            live CI pane (on pr://files)
 --   T            conversation pane (on pr://files)
 --
@@ -18,7 +18,6 @@
 --   pr.data   every git/forge query, read and write
 --   pr.list   the PR home surface (pr://list) - stacks render adjacent
 --   pr.marks  the fast list - a few PRs, slotted, ]m / [m and <leader>1-9
---   pr.pick   the two fzf surfaces (PR list, commit list)
 --   pr.verbs  the write side - one verb, both surfaces
 --   pr.view   the files buffer - THE review surface
 --   pr.tree   where a PR becomes real files (a worktree, never your checkout)
@@ -105,7 +104,7 @@ end
 
 -- --------------------------------------------------------------- loading ---
 
---- Point the whole flow at a PR (called by pr.pick with a picked entry).
+--- Point the whole flow at a PR (called from pr://list with the row under the cursor).
 function M.load(root, pr)
   local ref = data.ref(pr.number)
 
@@ -179,17 +178,13 @@ function M.reload()
   end)
 end
 
--- --------------------------------------------------------------- pickers ---
+-- -------------------------------------------------------------- surfaces ---
 
 function M.list() require("pr.list").open() end
 
 --- The commit log of the default branch (pr://log) - the landed counterpart
 --- to pr://list's open work.
 function M.log() require("pr.log").open() end
-
-function M.pick_pr() require("pr.pick").pr() end
-
-function M.pick_commit() require("pr.pick").commit() end
 
 -- ------------------------------------------------------------- navigation ---
 
@@ -246,7 +241,7 @@ function M.refspec()
   info "refspec installed, fetching PR refs..."
   data.fetch(root, function(ok, err)
     if ok then
-      info "PR refs available - <leader>gP to pick one"
+      info "PR refs available - <c-p> to list them"
     else
       warn("fetch failed: " .. (err or ""))
     end

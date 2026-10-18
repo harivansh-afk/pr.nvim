@@ -49,7 +49,7 @@ function M.width(buf)
   return vim.api.nvim_win_get_width(win) - vim.fn.getwininfo(win)[1].textoff
 end
 
---- The fzf-picker-era column split both surfaces use: a fixed left column, a
+--- The column split both surfaces use: a fixed left column, a
 --- title that absorbs whatever is left, then author and age right-aligned
 --- against the window edge.
 ---@param width integer  cells available (M.width)

@@ -51,7 +51,7 @@ local S ---@type pr.Surface
 local function render()
   if not S:valid() then return end
 
-  -- Same fzf-picker-era split as pr://list: sha | subject (fills) | author |
+  -- Same split as pr://list: sha | subject (fills) | author |
   -- age, with author and age right-aligned against the window edge.
   -- 3 = leading space + orb + space, 8 = the sha column; display cells.
   local sha_w = 8
