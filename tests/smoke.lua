@@ -198,5 +198,19 @@ pr.render = render
 pr.state.commits, pr.state.idx = saved_commits, saved_idx
 package.loaded["fzf-lua"], package.loaded["fzf-lua.utils"] = nil, nil
 
+-- A host that dials its own forge over loopback (url.<base>.insteadOf) still
+-- browses and resolves logins against the configured origin.
+local remote_repo = vim.fn.tempname()
+vim.fn.system { "git", "init", "-q", remote_repo }
+vim.fn.system { "git", "-C", remote_repo, "remote", "add", "origin", "https://git.example.com/o/r.git" }
+vim.fn.system { "git", "-C", remote_repo, "config", "url.git@localhost:.insteadOf", "https://git.example.com/" }
+local data = require "pr.data"
+check(
+  "web URL ignores insteadOf",
+  data.web_url(remote_repo, 7) == "https://git.example.com/o/r/pulls/7",
+  data.web_url(remote_repo, 7)
+)
+vim.fn.delete(remote_repo, "rf")
+
 print(failures == 0 and "\npr smoke: ok" or ("\npr smoke: " .. failures .. " failures"))
 vim.cmd(failures == 0 and "qall!" or "cquit")
