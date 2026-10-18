@@ -102,14 +102,19 @@ function M.ref_exists(root, ref)
   return git { "-C", root, "rev-parse", "--verify", "--quiet", ref .. "^{commit}" } ~= nil
 end
 
+--- origin's URL as configured, not as git dials it: `remote get-url` applies
+--- url.<base>.insteadOf, so a host that rewrites its own forge to loopback SSH
+--- (git@localhost:) would name the wrong host to tea and to the browser.
+---@return string? url
+local function origin_url(root)
+  local out = git { "-C", root, "config", "--get", "remote.origin.url" }
+  return out and out[1]
+end
+
 --- Which CLI speaks for origin: gh for github.com, tea for everything else
 --- (Forgejo/Gitea; tea resolves its login from the remote on its own).
 ---@return "gh"|"tea"
-function M.forge(root)
-  local out = git { "-C", root, "remote", "get-url", "origin" }
-  local url = out and out[1] or ""
-  return url:find "github%.com" and "gh" or "tea"
-end
+function M.forge(root) return (origin_url(root) or ""):find "github%.com" and "gh" or "tea" end
 
 --- Runs a forge list command async and hands the decoded JSON rows to cb.
 ---@param cb fun(rows?: table[], err?: string)
@@ -127,8 +132,7 @@ end
 --- Host part of origin's URL, for matching a tea login to THIS remote.
 ---@return string? host
 local function origin_host(root)
-  local out = git { "-C", root, "remote", "get-url", "origin" }
-  local url = (out and out[1] or ""):gsub("^%w+://", ""):gsub("^[^@/]+@", "")
+  local url = (origin_url(root) or ""):gsub("^%w+://", ""):gsub("^[^@/]+@", "")
   local host = url:match "^([^/:]+)"
   return host ~= "" and host or nil
 end
@@ -622,8 +626,7 @@ end
 --- URL we can open and comes back nil.
 ---@return string? base
 local function web_base(root)
-  local out = git { "-C", root, "remote", "get-url", "origin" }
-  local url = out and out[1]
+  local url = origin_url(root)
   if not url then return nil end
   url = url:gsub("%.git$", ""):gsub("^ssh://git@", "https://"):gsub("^git@([^:]+):", "https://%1/")
   return url:find "^https?://" and url or nil
