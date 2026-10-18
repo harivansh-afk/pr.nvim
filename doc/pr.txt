@@ -4,8 +4,7 @@
 SETUP                                                              *pr-setup*
 
 Neovim 0.11+, git, and authenticated gh (GitHub) or tea (Forgejo/Gitea).
-The forge is detected from origin. Load fzf-lua for the optional pickers and
-diffs.nvim for the full diff review. No plugin manager is required by pr.nvim.
+The forge is detected from origin. Load diffs.nvim for the full diff review. No plugin manager is required by pr.nvim.
 
 Commands and buffer mappings are installed automatically. Global mappings
 are opt-in; configure after setting your mapleader: >lua
@@ -21,8 +20,6 @@ COMMANDS                                                       *pr-commands*
 
     :PR [list]          List open PRs (pr://list)
     :PR log             Browse commits (pr://log)
-    :PR pick            Pick a PR with fzf-lua
-    :PR commit          Pick a commit with fzf-lua
     :PR files           Show files for the current range (pr://files)
     :PR checks          Toggle the CI pane (pr://checks); <CR> opens job logs
     :PR threads         Toggle comments and review threads (pr://threads)
@@ -48,7 +45,6 @@ replaced. Buffer-local mappings are always present; g? shows their help.
     <leader>gf          Files view
     <leader>ci          CI pane
     <leader>ct          Conversation pane
-    <leader>gC          Commit picker
     <leader>m           Cumulative / incremental
     <leader>gA          Whole PR
     <C-e>               Marked PR list

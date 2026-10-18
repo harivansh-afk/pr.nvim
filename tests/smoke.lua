@@ -30,7 +30,6 @@ for _, mod in ipairs {
   "pr.list",
   "pr.log",
   "pr.view",
-  "pr.pick",
   "pr.tree",
   "pr.gitstats",
   "pr.threads",
@@ -170,33 +169,6 @@ end
 for _, key in ipairs { "A", "]m", "[m", "<leader>1-9", "<c-e>", "D", "M" } do
   check("g? documents " .. key, seen[key] == 1)
 end
-
--- Picker integration must not assume a particular plugin manager.
-local pr = require "pr"
-local saved_commits, saved_idx = pr.state.commits, pr.state.idx
-pr.state.commits = { { sha = "abc123", subject = "example", author = "author", ago = "1h" } }
-local notify, notices = vim.notify, {}
-vim.notify = function(msg) notices[#notices + 1] = msg end
-require("pr.pick").commit()
-check("missing optional picker is explained", #notices == 1 and notices[1]:find("fzf-lua", 1, true) ~= nil)
-vim.notify = notify
-local identity = function(value) return value end
-package.loaded["fzf-lua.utils"] = { ansi_codes = setmetatable({}, { __index = function() return identity end }) }
-local picked, rendered = false, false
-local render = pr.render
-pr.render = function() rendered = true end
-package.loaded["fzf-lua"] = {
-  fzf_exec = function(entries, opts)
-    picked = #entries == 1
-    opts.actions.default { entries[1] }
-  end,
-}
-pr.state.root, pr.state.base = ROOT, "origin/main"
-require("pr.pick").commit()
-check("picker works without lz.n", picked and rendered and pr.state.idx == 1 and not package.loaded["lz.n"])
-pr.render = render
-pr.state.commits, pr.state.idx = saved_commits, saved_idx
-package.loaded["fzf-lua"], package.loaded["fzf-lua.utils"] = nil, nil
 
 -- A host that dials its own forge over loopback (url.<base>.insteadOf) still
 -- browses and resolves logins against the configured origin.

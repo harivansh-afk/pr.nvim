@@ -236,18 +236,17 @@ end
 --- consumer downstream works on either without knowing which.
 --- `sha` is the short display form; `full` exists because forge APIs
 --- filter on the EXACT sha string (Forgejo's ?head_sha= does) and must never
---- be handed an abbreviation. `ago` is git's own relative string ("24 hours
---- ago"), which the fzf commit picker shows in full; `ts` is the same instant
---- as unix seconds for the four-cell age column (pr.fmt.since).
-local LOG_FORMAT = "--format=%h\t%H\t%an\t%ar\t%at\t%s"
+--- be handed an abbreviation. `ts` is the commit time as unix seconds for the
+--- four-cell age column (pr.fmt.since).
+local LOG_FORMAT = "--format=%h\t%H\t%an\t%at\t%s"
 
----@return table[] commits  { sha, full, author, ago, ts, subject }
+---@return table[] commits  { sha, full, author, ts, subject }
 local function parse_log(out)
   local commits = {}
   for _, line in ipairs(out or {}) do
-    local sha, full, an, ar, at, subject = line:match "^(%S+)\t(%S+)\t(.-)\t(.-)\t(%d*)\t(.*)$"
+    local sha, full, an, at, subject = line:match "^(%S+)\t(%S+)\t(.-)\t(%d*)\t(.*)$"
     if sha then
-      commits[#commits + 1] = { sha = sha, full = full, author = an, ago = ar, ts = tonumber(at), subject = subject }
+      commits[#commits + 1] = { sha = sha, full = full, author = an, ts = tonumber(at), subject = subject }
     end
   end
   return commits
@@ -255,7 +254,7 @@ end
 
 --- Commits of a PR, OLDEST FIRST so index 1 is the first commit authored
 --- (matches GitHub's Commits tab, and makes `]c` walk toward the tip).
----@return table[] commits  { sha, author, ago, subject }
+---@return table[] commits  { sha, author, ts, subject }
 function M.commits(root, base, target)
   return parse_log(git { "-C", root, "log", "--reverse", LOG_FORMAT, base .. ".." .. target })
 end

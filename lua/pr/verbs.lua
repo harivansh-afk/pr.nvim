@@ -16,7 +16,7 @@
 --
 -- Prompts are vim.fn.confirm, deliberately: it is the one picker that draws
 -- in the cmdline at the bottom of the screen, right under the error that
--- provoked it. fzf and vim.ui.select float away over the diff.
+-- provoked it. vim.ui.select floats away over the diff.
 
 local data = require "pr.data"
 

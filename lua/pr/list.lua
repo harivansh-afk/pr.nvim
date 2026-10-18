@@ -117,7 +117,7 @@ local function render(prs)
   -- parent simply promotes its children to roots in `stacked`.
   M.order = stacked(visible(prs))
 
-  -- fzf-picker-era columns: number | title (fills the window) | author | age,
+  -- Columns: number | title (fills the window) | author | age,
   -- author + age right-aligned against the window edge. Title absorbs
   -- whatever the fixed columns leave, truncating into "…" when narrow.
   -- 3 = leading space + orb + space, 6 = the number column, 2 = the fast-list
