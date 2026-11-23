@@ -1,77 +1,141 @@
 *pr.txt*  Pull request review for Neovim                              *pr.nvim*
 
+Requires Neovim 0.11+, git, and an authenticated `gh` (GitHub) or `tea`
+(Forgejo, Gitea). The forge is whatever `origin` points at. There is no
+setup function and nothing to configure.
+
 ==============================================================================
-SETUP                                                              *pr-setup*
+COMMANDS                                                         *pr-commands*
 
-Neovim 0.11+, git, and authenticated gh (GitHub) or tea (Forgejo/Gitea).
-The forge is detected from origin. Load diffs.nvim for the full diff review. No plugin manager is required by pr.nvim.
+                                                                         *:PR*
+:PR [list]              Open pull requests of the current repository.
+:PR {number}            Review that pull request, open or not.
+:PR log [count]         The last [count] commits of HEAD (default 50).
+:PR checks              Toggle the CI checks of the pull request or commit
+                        under the cursor in the |preview-window|.
+:PR threads             Toggle its reviews and comments the same way.
+:PR next                Review the next pull request in list order.
+:PR prev                Review the previous one.
+:PR mark                Mark or unmark the pull request.
+:PR marks               Pick a marked pull request with |vim.ui.select()|.
+:PR marks {slot}        Review the pull request in that slot.
+:PR marks next          Review the next marked pull request.
+:PR marks prev          Review the previous one.
+:PR draft               Switch between draft and ready.
+:PR merge               Merge. |vim.ui.select()| offers the styles the
+                        repository allows, each also as "when checks pass".
+:PR close               Close without merging, after |confirm()|.
+:PR checkout            Check the branch out in your working tree. A local
+                        branch with commits the pull request lacks is kept.
+:PR browse              Open the thing under the cursor in the browser.
+:PR[!] clean            Remove the review worktree. With ! even if modified.
 
-Commands and buffer mappings are installed automatically. Global mappings
-are opt-in; configure after setting your mapleader: >lua
-    require("pr").setup { keymaps = true }
+A command acts on the pull request under the cursor, else on the one the
+buffer shows, else on the one reviewed last.
+
+==============================================================================
+BUFFERS                                                           *pr-buffers*
+
+Every view is an ordinary buffer named by what it shows, loaded by a
+|BufReadCmd|. |:edit| reloads it, |CTRL-^| and the |jumplist| move between
+them, and the filetype is `pr` (`prlog` for a job log).
+
+    pr://list               open pull requests, stacks indented under
+                            their base
+    pr://{number}           one pull request: commits, files, inline diffs
+    pr://commit/{sha}       one commit, in the same form
+    pr://log                commits of HEAD with their CI status
+    pr://{number}/checks    CI jobs, worst first, refreshed while any runs
+    pr://commit/{sha}/checks
+    pr://{number}/threads   reviews, code threads and comments
+    pr://job/{id}           one job's log
+
+Checks and threads open in the |preview-window|: |CTRL-W_z| closes it,
+|CTRL-W_P| enters it, 'previewheight' bounds it, and it follows the pull
+request you move to. A job log folds on its `##[group]` markers (|zj|, |zk|,
+|zR|) and conceals timestamps (|'conceallevel'| shows them). Threads fold
+one per conversation.
+
+Opening a file checks the pull request out into one detached worktree per
+repository under `stdpath("cache")/pr`, so language servers see real files
+and your checkout is never touched.
+
+Marks live in `stdpath("state")/pr-marks.json`, per repository.
+
+==============================================================================
+MAPPINGS                                                             *pr-maps*
+
+All mappings are buffer-local. There are no global ones; map |:PR| yourself:
+>lua
+    vim.keymap.set("n", "<C-p>", "<Cmd>PR<CR>")
+    vim.keymap.set("n", "<Leader>1", "<Cmd>PR marks 1<CR>")
 <
-Calling setup() without options leaves existing global mappings alone.
-Custom mappings can invoke :PR commands or the public Lua functions: >lua
-    vim.keymap.set("n", "<leader>gp", function() require("pr").list() end)
+Every pr buffer ~
+    g?          this help
+    gx          open in the browser
+    R  <C-r>    reload, as |:edit|
+    -           the pull request list
+    q           close the preview window, else go to the alternate buffer
+
+pr://list and pr://{number} ~
+    D           draft or ready
+    M           merge
+    C           check out
+    X           close
+    A           mark or unmark
+
+pr://list ~
+    <CR>        review the pull request
+    F           only my pull requests, or everyone's; remembered
+
+pr://{number} and pr://commit/{sha} ~
+    <CR>        open the file at the line under the cursor; on a commit,
+                show only that commit, or all of them again
+    o  gO  O    open the file in a split, a vertical split, a tab
+    =           toggle the file's inline diff
+    dd          review the diff with diffs.nvim
+    dv          the same, side by side
+    ]c  [c      next or previous commit, through the whole pull request
+    ]f  [f      next or previous file
+    ]p  [p      next or previous pull request
+    ]m  [m      next or previous marked pull request
+
+pr://log ~
+    <CR>        review the commit
+    dd  dv      review its diff with diffs.nvim
+
+pr://.../checks ~
+    <CR>        open the job log in the previous window
+    =           toggle the job's steps, or the tail of its log
+
+pr://{number}/threads ~
+    <CR>        jump to the line a thread is about, in the worktree; open
+                anything else in the browser
+    =           toggle the fold, as |za|
+
+To add or change mappings, use a filetype plugin: >lua
+    -- after/ftplugin/pr.lua
+    vim.keymap.set("n", "<Tab>", "=", { buffer = true, remap = true })
 <
+==============================================================================
+HIGHLIGHTS                                                     *pr-highlights*
+
+Every group is a default link, so a colorscheme or |:highlight| overrides it.
+
+    PrHeader PrHeading PrNumber PrDraft PrAuthor PrRef PrHash PrStack
+    PrMark PrMuted PrSelected PrAdded PrDeleted PrChanged PrHunk
+    PrPass PrFail PrRunning PrPending PrSkipped
+    PrAnsiRed PrAnsiGreen PrAnsiYellow PrAnsiBlue PrAnsiMagenta PrAnsiCyan
+    PrAnsiBold
+
+With diffs.nvim installed, inline diffs are highlighted by it instead.
 
 ==============================================================================
-COMMANDS                                                       *pr-commands*
+LUA                                                                   *pr-lua*
 
-    :PR [list]          List open PRs (pr://list)
-    :PR log             Browse commits (pr://log)
-    :PR files           Show files for the current range (pr://files)
-    :PR checks          Toggle the CI pane (pr://checks); <CR> opens job logs
-    :PR threads         Toggle comments and review threads (pr://threads)
-    :PR mode            Toggle cumulative / incremental diff
-    :PR whole           Select the whole PR range
-    :PR reload          Refresh the loaded PR
-    :PR refspec         Install the pull-request fetch refspec
-    :PR clean           Remove clean review worktrees
-
-Write actions are available as subcommands too: use command completion or
-g? in a PR buffer for the available verbs, including draft, merge and close.
-
-==============================================================================
-GLOBAL MAPPINGS                                                  *pr-keymaps*
-
-Enabled by setup { keymaps = true }. Existing mappings on these keys are
-replaced. Buffer-local mappings are always present; g? shows their help.
-
-    <C-p>               PR list
-    <leader>gl          Commit log
-    ]p / [p             Next / previous PR
-    ]c / [c             Next / previous commit
-    <leader>gf          Files view
-    <leader>ci          CI pane
-    <leader>ct          Conversation pane
-    <leader>m           Cumulative / incremental
-    <leader>gA          Whole PR
-    <C-e>               Marked PR list
-    <leader>1-9         Jump to a marked PR slot
-    ]m / [m             Next / previous marked PR
-
-Bracket mappings fall back to their native Vim motions outside the relevant
-PR context; ]c and [c also retain native behavior in diff-mode windows.
-
-==============================================================================
-STATE                                                            *pr-state*
-
-PR listings fetch origin and add its pull-request refspec on first use.
-File navigation creates detached worktrees under .worktrees/pr-<number> or
-.worktrees/pr-commit-<sha>. :PR clean keeps dirty worktrees. Add .worktrees/
-to your Git ignore rules if it is not already ignored.
-
-Marks persist per repository in stdpath("state")/pr-marks.json.
-
-==============================================================================
-FUGITIVE                                                      *pr-fugitive*
-
-To show the same per-file addition/deletion counts in Fugitive status: >lua
-    vim.api.nvim_create_autocmd("User", {
-      pattern = "FugitiveIndex",
-      callback = function(ev) require("pr.gitstats").fugitive(ev.buf) end,
-    })
-<
+`require("pr")` has one function per command, taking the same arguments:
+`list()`, `open(number)`, `log(count)`, `checks()`, `threads()`,
+`step(delta, marked)`, `mark()`, `marks(slot)`, `draft()`, `merge()`,
+`close()`, `checkout()`, `browse()` and `clean(nil, force)`.
 
  vim:tw=78:ts=8:ft=help:norl:

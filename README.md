@@ -2,62 +2,40 @@
 
 > Development, issues, and pull requests: [Forgejo](https://git.harivan.sh/harivansh-afk/pr.nvim). GitHub is a read-only mirror.
 
-Review GitHub and Forgejo/Gitea pull requests in Neovim: PR lists, commit navigation, file diffs, CI logs, review threads, and a persistent list of marked PRs.
+Review GitHub and Forgejo/Gitea pull requests in Neovim: the list, each pull request's commits and diffs, CI checks and job logs, review threads, and the real files in a worktree.
 
 ## Install
 
-Requires Neovim 0.11+, Git, and an authenticated [`gh`](https://cli.github.com/) or [`tea`](https://gitea.com/gitea/tea) CLI for the repository's `origin` remote.
+Requires Neovim 0.11+, Git, and an authenticated [`gh`](https://cli.github.com/) or [`tea`](https://gitea.com/gitea/tea) for the repository's `origin`.
 
-Install with your plugin manager using this URL:
-
-```
-https://git.harivan.sh/harivansh-afk/pr.nvim
-```
-
-Or use Neovim's native packages:
+Install `https://git.harivan.sh/harivansh-afk/pr.nvim` with your plugin manager, or as a native package:
 
 ```sh
 git clone https://git.harivan.sh/harivansh-afk/pr.nvim \
   ~/.local/share/nvim/site/pack/plugins/start/pr.nvim
 ```
 
-After a native install, run `:helptags ALL` once to index the help.
-
-Optional plugins, installed and loaded by your plugin manager:
-
-- [`diffs.nvim`](https://github.com/barrettruth/diffs.nvim) for the full diff review (`dd` / `dv`) and inline diff styling.
+After a native install, run `:helptags ALL` once. [`diffs.nvim`](https://github.com/barrettruth/diffs.nvim) is optional: it highlights inline diffs and provides the full diff review on `dd` and `dv`.
 
 ## Use
 
-Open Neovim in a Git repository and run `:PR`, or launch with `nvim +PR`.
-Press `g?` in a PR buffer for its mappings.
+Run `:PR` in a Git repository, or start with `nvim +PR`. Press `g?` in any buffer for its mappings.
 
-| Command | Opens or changes |
+| Command | Does |
 | --- | --- |
-| `:PR` | Open pull requests |
-| `:PR log` | Commit log |
-| `:PR files` | Files in the selected PR or commit |
-| `:PR checks` | CI checks and job logs |
-| `:PR threads` | Comments and review threads |
-| `:PR mode` | Cumulative / incremental diff |
-| `:PR whole` | Whole PR diff |
-| `:PR clean` | Remove clean review worktrees |
+| `:PR` | List open pull requests |
+| `:PR {number}` | Review one |
+| `:PR log` | Commits of `HEAD` with their CI status |
+| `:PR checks` | Toggle CI checks in the preview window |
+| `:PR threads` | Toggle reviews and comments in the preview window |
+| `:PR merge`, `draft`, `close`, `checkout`, `browse` | Act on the pull request under the cursor |
+| `:PR mark`, `:PR marks` | Keep a short list of pull requests and jump between them |
 
-Commands and buffer-local mappings work without setup. To enable the global shortcuts:
+Every view is a normal buffer (`pr://list`, `pr://12`, `pr://12/checks`), so `:edit` reloads it and `<C-^>` and the jumplist move between them. Nothing needs setup, and there are no global mappings: map `:PR` to the keys you want.
 
-```lua
-require("pr").setup { keymaps = true }
-```
+Opening a file checks the pull request out into a detached worktree under `stdpath("cache")/pr`, one per repository, so language servers work and your checkout is never touched. `:PR clean` removes it.
 
-These include `<C-p>` for the PR list, `<leader>gl` for commits, `]p` / `[p`
-for PR navigation, `]c` / `[c` for commits, and `<C-e>` for marked PRs.
-They replace existing mappings for those keys. See `:help pr-keymaps` for the full list.
-For your own shortcuts, map commands or call functions such as `require("pr").list()`.
-
-The first PR listing adds an `origin` pull-request fetch refspec to the local Git config.
-Opening a file creates a detached review worktree under `.worktrees/pr-<number>`
-or `.worktrees/pr-commit-<sha>`. Dirty review worktrees are kept when cleaning.
-Marked PRs persist in `stdpath("state")/pr-marks.json`.
+See `:help pr.nvim` for everything.
 
 ## Development
 
@@ -66,8 +44,6 @@ bash scripts/test.sh
 stylua --check lua plugin tests
 ```
 
-The headless tests isolate Neovim from personal configuration and other plugins;
-forge responses are fixtures. They do not require a logged-in forge account.
+The tests run headless against fixture forge responses and need no account. `docs/design.md` explains how the parts fit.
 
-Extracted from [Hari's Nix configuration](https://git.harivan.sh/harivansh-afk/nix)
-at `c01fa6c`, retaining its GPLv3 license.
+Licensed under GPLv3.
